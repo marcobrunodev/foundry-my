@@ -11,6 +11,15 @@ import {ERC721Common} from "../common/ronin/ERC721Common.sol";
  */
 contract Gueio is ERC721Common
 {
+    /// @dev Error thrown when trying to mint beyond the maximum supply
+    error MaxSupplyReached();
+
+    /// @dev Error thrown when batch mint arrays have different lengths
+    error ArrayLengthMismatch();
+
+    /// @dev Error thrown when batch minting would exceed maximum supply
+    error MaxSupplyExceeded();
+
     /// @notice Maximum number of tokens that can be minted
     uint256 public constant MAX_SUPPLY = 512;
 
@@ -50,7 +59,9 @@ contract Gueio is ERC721Common
      * @dev Reverts if the maximum supply has been reached
      */
     function mint(address to, string memory uri) public onlyOwner {
-        require(_nextTokenId <= MAX_SUPPLY, "Gueio: max supply reached");
+        if (_nextTokenId > MAX_SUPPLY) {
+            revert MaxSupplyReached();
+        }
 
         uint256 tokenId = _nextTokenId;
         _nextTokenId++;
@@ -69,8 +80,12 @@ contract Gueio is ERC721Common
      * @dev Reverts if arrays have different lengths or if minting would exceed maximum supply
      */
     function batchMint(address[] memory to, string[] memory uris) public onlyOwner {
-        require(to.length == uris.length, "Gueio: arrays length mismatch");
-        require(_nextTokenId + to.length - 1 <= MAX_SUPPLY, "Gueio: max supply exceeded");
+        if (to.length != uris.length) {
+            revert ArrayLengthMismatch();
+        }
+        if (_nextTokenId + to.length - 1 > MAX_SUPPLY) {
+            revert MaxSupplyExceeded();
+        }
 
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId;

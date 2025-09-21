@@ -111,7 +111,7 @@ contract GueioTest is Test {
         uris[1] = "ipfs://QmHash2";
         uris[2] = "ipfs://QmHash3";
 
-        vm.expectRevert("Gueio: arrays length mismatch");
+        vm.expectRevert(abi.encodeWithSignature("ArrayLengthMismatch()"));
         gueio.batchMint(recipients, uris);
 
         vm.stopPrank();
@@ -127,7 +127,7 @@ contract GueioTest is Test {
         assertEq(gueio.totalMinted(), 512);
         assertEq(gueio.remainingSupply(), 0);
 
-        vm.expectRevert("Gueio: max supply reached");
+        vm.expectRevert(abi.encodeWithSignature("MaxSupplyReached()"));
         gueio.mint(user2, "ipfs://overflow");
 
         vm.stopPrank();
@@ -148,7 +148,7 @@ contract GueioTest is Test {
             uris[i] = string(abi.encodePacked("ipfs://batch", i));
         }
 
-        vm.expectRevert("Gueio: max supply exceeded");
+        vm.expectRevert(abi.encodeWithSignature("MaxSupplyExceeded()"));
         gueio.batchMint(recipients, uris);
 
         vm.stopPrank();
