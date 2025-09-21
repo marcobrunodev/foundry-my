@@ -1,0 +1,62 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+[profile.default.lint]
+exclude_lints = ["asm-keccak256", "mixed-case-function"]
+
+[profile.base]
+eth_rpc_url = "${BASE_RPC_URL}"
+etherscan_api_key = "${ETHERSCAN_API_KEY}"
+keystore = "base-deployer"
+gas_fees = 1000000000
+chain_id = 8453
+
+[profile.base-sepolia]
+eth_rpc_url = "${BASE_SEPOLIA_RPC_URL}"
+etherscan_api_key = "${ETHERSCAN_API_KEY}"
+keystore = "base-sepolia-deployer"
+gas_fees = 1000000000
+chain_id = 84532
+
+[profile.local]
+eth_rpc_url = "http://localhost:8545"
+keystore = "dev-deployer"
+chain_id = 31337  # Anvil default chain ID
+gas_fees = 20000000000  # 20 gwei
+block_time = 1  # 1 second blocks
+
+[profile.local-fork]
+eth_rpc_url = "http://localhost:8545"
+keystore = "dev-deployer"
+chain_id = 1  # Fork mainnet chain ID
+gas_fees = 20000000000
+
+[profile.polygon-amoy]
+eth_rpc_url = "${POLYGON_RPC_URL}"
+etherscan_api_key = "${ETHERSCAN_API_KEY}"
+keystore = "amoy-deployer"
+chain_id = 80002
+gas_fees = 30000000000  # 30 gwei
+
+[profile.polygon-mainnet]
+eth_rpc_url = "${POLYGON_RPC_URL}"
+etherscan_api_key = "${ETHERSCAN_API_KEY}"
+keystore = "polygon-deployer"
+chain_id = 137
+gas_fees = 30000000000  # 30 gwei
+
+[profile.ronin-saigon]
+eth_rpc_url = "${RONIN_RPC_URL}"
+keystore = "saigon-deployer"
+chain_id = 2021
+gas_fees = 20000000000  # 20 gwei
+# Note: Ronin uses Sourcify for verification (no API key needed)
+
+[profile.ronin-mainnet]
+eth_rpc_url = "${RONIN_RPC_URL}"
+keystore = "ronin-deployer"
+chain_id = 2020
+gas_fees = 20000000000  # 20 gwei
+# Note: Ronin uses Sourcify for verification (no API key needed)

@@ -1,0 +1,51 @@
+{
+  "name": "foundry-myduckly",
+  "version": "1.0.0",
+  "description": "Smart contract infrastructure for Ronin network with cross-chain capabilities between Ronin, Polygon and Base networks",
+  "scripts": {
+    "prepare": "forge install",
+    "build": "forge build",
+    "test": "forge test",
+    "test:verbose": "forge test -vvv",
+    "test:gas": "forge test --gas-report",
+    "coverage": "forge coverage",
+    
+    "deploy:mainnet": "./bin/deploy.sh base-mainnet",
+    "deploy:sepolia": "./bin/deploy.sh base-sepolia",
+    "deploy:ronin": "./bin/deploy.sh ronin-mainnet",
+    "deploy:saigon": "./bin/deploy.sh ronin-saigon",
+    "deploy:polygon": "./bin/deploy.sh polygon-mainnet",
+    "deploy:amoy": "./bin/deploy.sh polygon-amoy",
+    
+    "upgrade:mainnet": "./bin/upgrade.sh base-mainnet",
+    "upgrade:sepolia": "./bin/upgrade.sh base-sepolia",
+    "upgrade:ronin": "./bin/upgrade.sh ronin-mainnet", 
+    "upgrade:saigon": "./bin/upgrade.sh ronin-saigon",
+    "upgrade:polygon": "./bin/upgrade.sh polygon-mainnet",
+    "upgrade:amoy": "./bin/upgrade.sh polygon-amoy",
+    
+    "setup-hooks": "git config core.hooksPath .githooks && chmod +x .githooks/*",
+    "commit": "gitmoji -c"
+  },
+  "devDependencies": {
+    "gitmoji-cli": "^9.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarcoBrunoDev/foundry-my.git"
+  },
+  "keywords": [
+    "solidity",
+    "foundry",
+    "smart-contracts",
+    "base",
+    "ethereum",
+    "proxy",
+    "upgradeable"
+  ],
+  "author": "Marco Bruno",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.15.0"
+  }
+}
