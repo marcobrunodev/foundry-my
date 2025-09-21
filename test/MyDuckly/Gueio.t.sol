@@ -15,6 +15,7 @@ contract GueioTest is Test {
     address public user2;
 
     event TokenMinted(address indexed to, uint256 indexed tokenId);
+    event NonceIncremented(uint256 indexed tokenId, address indexed from, address indexed to, uint256 newNonce);
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -235,7 +236,7 @@ contract GueioTest is Test {
     }
 
     function test_StateOfNonExistentToken() public {
-        vm.expectRevert("query for non-existent token");
+        vm.expectRevert(abi.encodeWithSignature("QueryForNonexistentToken(uint256)", 999));
         gueio.stateOf(999);
     }
 
@@ -250,6 +251,10 @@ contract GueioTest is Test {
         vm.stopPrank();
 
         vm.startPrank(user1);
+
+        vm.expectEmit(true, true, true, true);
+        emit NonceIncremented(1, user1, user2, 1);
+
         gueio.transferFrom(user1, user2, 1);
         vm.stopPrank();
 
@@ -288,18 +293,24 @@ contract GueioTest is Test {
         vm.stopPrank();
 
         vm.startPrank(user1);
+        vm.expectEmit(true, true, true, true);
+        emit NonceIncremented(1, user1, user2, 1);
         gueio.transferFrom(user1, user2, 1);
         vm.stopPrank();
 
         assertEq(gueio.nonces(1), 1);
 
         vm.startPrank(user2);
+        vm.expectEmit(true, true, true, true);
+        emit NonceIncremented(1, user2, owner, 2);
         gueio.transferFrom(user2, owner, 1);
         vm.stopPrank();
 
         assertEq(gueio.nonces(1), 2);
 
         vm.startPrank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit NonceIncremented(1, owner, user1, 3);
         gueio.transferFrom(owner, user1, 1);
         vm.stopPrank();
 

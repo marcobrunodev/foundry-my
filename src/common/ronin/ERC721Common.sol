@@ -27,6 +27,23 @@ abstract contract ERC721Common is
     UUPSUpgradeable,
     IERC721Common
 {
+    /// @dev Error thrown when querying state for a non-existent token
+    /// @param tokenId The token ID that was queried
+    error QueryForNonexistentToken(uint256 tokenId);
+
+    /// @dev Emitted when a token's nonce is incremented during transfer
+    /// @param tokenId The ID of the token whose nonce was incremented
+    /// @param from The previous owner of the token
+    /// @param to The new owner of the token
+    /// @param newNonce The new nonce value
+    event NonceIncremented(uint256 indexed tokenId, address indexed from, address indexed to, uint256 newNonce);
+
+    /// @dev Emitted when token state is queried (useful for analytics)
+    /// @param tokenId The ID of the token that was queried
+    /// @param owner The current owner of the token
+    /// @param nonce The current nonce of the token
+    event StateQueried(uint256 indexed tokenId, address indexed owner, uint256 nonce);
+
     /// @dev Mapping to track nonces for each token (required for Ronin Marketplace)
     mapping(uint256 => uint256) public nonces;
 
@@ -42,8 +59,17 @@ abstract contract ERC721Common is
      * @return The packed state data as bytes
      */
     function stateOf(uint256 tokenId) external view returns (bytes memory) {
-        require(_ownerOf(tokenId) != address(0), "query for non-existent token");
-        return abi.encodePacked(ownerOf(tokenId), nonces[tokenId], tokenId);
+        if (_ownerOf(tokenId) == address(0)) {
+            revert QueryForNonexistentToken(tokenId);
+        }
+
+        address owner = ownerOf(tokenId);
+        uint256 nonce = nonces[tokenId];
+
+        // Note: Events in view functions don't actually emit, but this shows the pattern
+        // In a real scenario, you might want to track this off-chain or in a separate function
+
+        return abi.encodePacked(owner, nonce, tokenId);
     }
 
     /**
@@ -69,6 +95,7 @@ abstract contract ERC721Common is
         // Increment nonce when token is transferred (but not when minted)
         if (previousOwner != address(0)) {
             nonces[tokenId]++;
+            emit NonceIncremented(tokenId, previousOwner, to, nonces[tokenId]);
         }
 
         return previousOwner;
