@@ -4,6 +4,8 @@ pragma solidity ^0.8.30;
 import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Gueio} from "../../src/MyDuckly/Gueio.sol";
+import {IERC721State} from "../../src/interfaces/IERC721State.sol";
+import {IERC721Common} from "../../src/interfaces/IERC721Common.sol";
 
 contract GueioTest is Test {
     Gueio public gueio;
@@ -170,9 +172,11 @@ contract GueioTest is Test {
     }
 
     function test_SupportsInterface() public view {
-        assertTrue(gueio.supportsInterface(0x80ac58cd));
-        assertTrue(gueio.supportsInterface(0x780e9d63));
-        assertTrue(gueio.supportsInterface(0x5b5e139f));
+        assertTrue(gueio.supportsInterface(0x80ac58cd)); // ERC721
+        assertTrue(gueio.supportsInterface(0x780e9d63)); // ERC721Enumerable
+        assertTrue(gueio.supportsInterface(0x5b5e139f)); // ERC721Metadata
+        assertTrue(gueio.supportsInterface(type(IERC721State).interfaceId)); // IERC721State
+        assertTrue(gueio.supportsInterface(type(IERC721Common).interfaceId)); // IERC721Common
     }
 
     function test_Upgrade() public {
@@ -213,5 +217,92 @@ contract GueioTest is Test {
         assertEq(gueio.totalMinted(), amount);
 
         vm.stopPrank();
+    }
+
+    function test_StateOf() public {
+        vm.startPrank(owner);
+
+        string memory uri = "ipfs://QmTestHash1";
+        gueio.mint(user1, uri);
+
+        bytes memory state = gueio.stateOf(1);
+        bytes memory expectedState = abi.encodePacked(user1, uint256(0), uint256(1));
+
+        assertEq(state, expectedState);
+        assertEq(gueio.nonces(1), 0);
+
+        vm.stopPrank();
+    }
+
+    function test_StateOfNonExistentToken() public {
+        vm.expectRevert("query for non-existent token");
+        gueio.stateOf(999);
+    }
+
+    function test_NoncesIncrementOnTransfer() public {
+        vm.startPrank(owner);
+
+        string memory uri = "ipfs://QmTestHash1";
+        gueio.mint(user1, uri);
+
+        assertEq(gueio.nonces(1), 0);
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        gueio.transferFrom(user1, user2, 1);
+        vm.stopPrank();
+
+        assertEq(gueio.nonces(1), 1);
+    }
+
+    function test_StateChangesAfterTransfer() public {
+        vm.startPrank(owner);
+
+        string memory uri = "ipfs://QmTestHash1";
+        gueio.mint(user1, uri);
+
+        bytes memory initialState = gueio.stateOf(1);
+        bytes memory expectedInitialState = abi.encodePacked(user1, uint256(0), uint256(1));
+        assertEq(initialState, expectedInitialState);
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        gueio.transferFrom(user1, user2, 1);
+        vm.stopPrank();
+
+        bytes memory newState = gueio.stateOf(1);
+        bytes memory expectedNewState = abi.encodePacked(user2, uint256(1), uint256(1));
+        assertEq(newState, expectedNewState);
+
+        assertTrue(keccak256(initialState) != keccak256(newState));
+    }
+
+    function test_MultipleTransfersIncrementNonces() public {
+        vm.startPrank(owner);
+
+        string memory uri = "ipfs://QmTestHash1";
+        gueio.mint(user1, uri);
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        gueio.transferFrom(user1, user2, 1);
+        vm.stopPrank();
+
+        assertEq(gueio.nonces(1), 1);
+
+        vm.startPrank(user2);
+        gueio.transferFrom(user2, owner, 1);
+        vm.stopPrank();
+
+        assertEq(gueio.nonces(1), 2);
+
+        vm.startPrank(owner);
+        gueio.transferFrom(owner, user1, 1);
+        vm.stopPrank();
+
+        assertEq(gueio.nonces(1), 3);
     }
 }

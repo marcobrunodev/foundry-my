@@ -112,13 +112,25 @@ case $NETWORK in
         ;;
 esac
 
+# Determine proxy variable name based on script name
+SCRIPT_NAME=$(basename "$SCRIPT" | sed 's/Upgrade//')
+
+# Convert camelCase to SCREAMING_SNAKE_CASE
+TEMP_NAME="$SCRIPT_NAME"
+TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1_\2/g')
+CONTRACT_NAME=$(echo "$TEMP_NAME" | tr '[:lower:]' '[:upper:]')
+PROXY_VAR="${CONTRACT_NAME}_PROXY"
+
+# Get proxy address dynamically
+PROXY_ADDRESS=${!PROXY_VAR}
+
 echo "🔑 Using owner wallet: $WALLET_NAME"
 echo "👑 Contract owner: $INITIAL_OWNER"
-echo "� Proxy to upgrade: $CLAIM_VERIFIER_PROXY"
+echo "📱 Proxy to upgrade: $PROXY_ADDRESS (using $PROXY_VAR)"
 
 # Check if proxy address exists
-if [ -z "$CLAIM_VERIFIER_PROXY" ]; then
-    echo "❌ CLAIM_VERIFIER_PROXY not found in environment"
+if [ -z "$PROXY_ADDRESS" ]; then
+    echo "❌ $PROXY_VAR not found in environment"
     echo "💡 Make sure you have deployed the contract first"
     exit 1
 fi
@@ -135,7 +147,7 @@ echo "   Network: $NETWORK"
 echo "   Script: $SCRIPT"
 echo "   Wallet: $WALLET_NAME"
 echo "   Owner: $INITIAL_OWNER"
-echo "   Proxy: $CLAIM_VERIFIER_PROXY"
+echo "   Proxy: $PROXY_ADDRESS"
 echo "   RPC: $RPC_URL"
 echo ""
 read -p "🔄 Ready to upgrade? (y/N): " -r
@@ -236,35 +248,7 @@ if [ $UPGRADE_EXIT_CODE -eq 0 ]; then
             
             echo "🏭 New implementation: $NEW_IMPLEMENTATION"
             
-            # Determine contract variable names based on script name (without directory)
-            SCRIPT_NAME=$(basename "$SCRIPT" | sed 's/Upgrade//')
-            
-            # Convert camelCase to SCREAMING_SNAKE_CASE with intelligent handling of common patterns
-            # First, handle known acronyms and patterns to preserve them
-            TEMP_NAME="$SCRIPT_NAME"
-            
-            # Preserve common token standards
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/ERC1155/__ERC1155__/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/ERC721/__ERC721__/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/ERC20/__ERC20__/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/NFT/__NFT__/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/URI/__URI__/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/ID/__ID__/g')
-            
-            # Add underscores before capital letters (but not at start or after underscore)
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1_\2/g')
-            
-            # Restore preserved acronyms without extra underscores
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__ERC1155__/ERC1155/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__ERC721__/ERC721/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__ERC20__/ERC20/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__NFT__/NFT/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__URI__/URI/g')
-            TEMP_NAME=$(echo "$TEMP_NAME" | sed 's/__ID__/ID/g')
-            
-            # Convert to uppercase
-            CONTRACT_NAME=$(echo "$TEMP_NAME" | tr '[:lower:]' '[:upper:]')
-            
+            # Use the same contract name calculation as before
             IMPL_VAR="${CONTRACT_NAME}_IMPL"
             
             echo "📝 Updating variable: $IMPL_VAR"

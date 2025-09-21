@@ -1,14 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import {ERC721EnumerableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import {ERC721URIStorageUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC721Common} from "../common/ronin/ERC721Common.sol";
 
 /**
  * @title Gueio
@@ -16,13 +9,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
  * @notice This contract implements a limited supply NFT collection with batch minting capabilities
  * @author Marco Bruno
  */
-contract Gueio is
-    Initializable,
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    ERC721URIStorageUpgradeable,
-    OwnableUpgradeable,
-    UUPSUpgradeable
+contract Gueio is ERC721Common
 {
     /// @notice Maximum number of tokens that can be minted
     uint256 public constant MAX_SUPPLY = 512;
@@ -112,65 +99,4 @@ contract Gueio is
         return MAX_SUPPLY - totalMinted();
     }
 
-    /**
-     * @dev Authorizes contract upgrades. Only the owner can upgrade the contract
-     * @param newImplementation The address of the new implementation contract
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
-    /**
-     * @dev Hook that is called before any token transfer
-     * @param to The address the token is being transferred to
-     * @param tokenId The ID of the token being transferred
-     * @param auth The address authorized to make the transfer
-     * @return The previous owner of the token
-     */
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        returns (address)
-    {
-        return super._update(to, tokenId, auth);
-    }
-
-    /**
-     * @dev Internal function to increase the balance of an account
-     * @param account The address whose balance is being increased
-     * @param value The amount to increase the balance by
-     */
-    function _increaseBalance(address account, uint128 value)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-    {
-        super._increaseBalance(account, value);
-    }
-
-    /**
-     * @notice Returns the metadata URI for a given token
-     * @param tokenId The ID of the token to get the URI for
-     * @return The metadata URI for the token
-     * @dev Reverts if the token does not exist
-     */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
-    }
-
-    /**
-     * @notice Checks if the contract supports a given interface
-     * @param interfaceId The interface identifier to check
-     * @return True if the interface is supported, false otherwise
-     */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
-    }
 }
