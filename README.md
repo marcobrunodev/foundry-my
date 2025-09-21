@@ -1,6 +1,6 @@
-# MyDuckly Smart Contracts
+# Marco Bruno's Smart Contract Repository
 
-A comprehensive Foundry-based smart contract development environment for cross-chain deployment and lifecycle management. This repository serves as a universal foundation for all smart contract projects.
+A comprehensive Foundry-based smart contract development environment for cross-chain deployment and lifecycle management. This repository serves as my personal foundation for all smart contract projects, including MyDuckly and future developments.
 
 ## 🚀 Features
 
@@ -76,7 +76,10 @@ npm run commit         # Gitmoji commit interface
 ## 📁 Project Structure
 
 ```
-├── src/               # Smart contract source code
+├── src/
+│   ├── MyDuckly/      # MyDuckly project contracts
+│   │   └── Gueio.sol  # NFT collection contract
+│   └── [future-projects]/  # Future smart contract projects
 ├── test/              # Test files (.t.sol)
 ├── script/            # Deployment scripts (.s.sol)
 ├── bin/               # Shell automation scripts
@@ -149,12 +152,18 @@ forge test --match-test test_MyFunction
 - [Polygon Docs](https://docs.polygon.technology/)
 - [Ronin Docs](https://docs.roninchain.com/)
 
-## 🤝 Contributing
+## 📝 Projects
 
+### Current Projects
+- **MyDuckly**: NFT collection with upgradeable contracts
+  - `Gueio.sol`: ERC721 NFT contract with batch minting (512 max supply)
+
+### Development Guidelines
 1. Use `npm run commit` for conventional commits
-2. Run tests before submitting PRs
-3. Follow Solidity style guide
-4. Update documentation for new features
+2. Run tests before deploying
+3. Follow Solidity style guide with comprehensive NatSpec documentation
+4. Organize contracts by project in separate folders
+5. Update documentation for new features
 
 ## 📄 License
 
