@@ -16,6 +16,9 @@ contract GueioTest is Test {
 
     event TokenMinted(address indexed to, uint256 indexed tokenId);
     event NonceIncremented(uint256 indexed tokenId, address indexed from, address indexed to, uint256 newNonce);
+    event BatchMinted(uint256 count, uint256 indexed startTokenId, uint256 indexed endTokenId);
+    event ContractInitialized(address indexed owner, uint256 maxSupply);
+    event SupplyWarning(uint256 remainingSupply, uint256 totalMinted);
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -41,6 +44,20 @@ contract GueioTest is Test {
         assertEq(gueio.MAX_SUPPLY(), 512);
         assertEq(gueio.totalMinted(), 0);
         assertEq(gueio.remainingSupply(), 512);
+    }
+
+    function test_ContractInitialization() public {
+        vm.startPrank(owner);
+
+        Gueio newImplementation = new Gueio();
+
+        vm.expectEmit(true, false, false, true);
+        emit ContractInitialized(owner, 512);
+
+        bytes memory data = abi.encodeWithSelector(Gueio.initialize.selector, owner);
+        new ERC1967Proxy(address(newImplementation), data);
+
+        vm.stopPrank();
     }
 
     function test_Mint() public {
@@ -74,6 +91,9 @@ contract GueioTest is Test {
         uris[0] = "ipfs://QmHash1";
         uris[1] = "ipfs://QmHash2";
         uris[2] = "ipfs://QmHash3";
+
+        vm.expectEmit(true, true, false, true);
+        emit BatchMinted(3, 1, 3);
 
         gueio.batchMint(recipients, uris);
 
@@ -315,5 +335,23 @@ contract GueioTest is Test {
         vm.stopPrank();
 
         assertEq(gueio.nonces(1), 3);
+    }
+
+    function test_SupplyWarning() public {
+        vm.startPrank(owner);
+
+        // Mint tokens until we have 50 remaining (should trigger warning)
+        for (uint256 i = 0; i < 462; i++) {
+            gueio.mint(user1, string(abi.encodePacked("ipfs://hash", i)));
+        }
+
+        assertEq(gueio.remainingSupply(), 50);
+
+        vm.expectEmit(false, false, false, true);
+        emit SupplyWarning(49, 463);
+
+        gueio.mint(user1, "ipfs://warning-trigger");
+
+        vm.stopPrank();
     }
 }

@@ -31,6 +31,22 @@ contract Gueio is ERC721Common
     /// @param tokenId The ID of the minted token
     event TokenMinted(address indexed to, uint256 indexed tokenId);
 
+    /// @dev Emitted when multiple tokens are minted in a batch operation
+    /// @param count The number of tokens minted in the batch
+    /// @param startTokenId The first token ID in the batch
+    /// @param endTokenId The last token ID in the batch
+    event BatchMinted(uint256 count, uint256 indexed startTokenId, uint256 indexed endTokenId);
+
+    /// @dev Emitted when the contract is initialized
+    /// @param owner The initial owner of the contract
+    /// @param maxSupply The maximum supply of tokens
+    event ContractInitialized(address indexed owner, uint256 maxSupply);
+
+    /// @dev Emitted when supply warning thresholds are reached
+    /// @param remainingSupply The remaining tokens that can be minted
+    /// @param totalMinted The total tokens minted so far
+    event SupplyWarning(uint256 remainingSupply, uint256 totalMinted);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -49,6 +65,8 @@ contract Gueio is ERC721Common
         __UUPSUpgradeable_init();
 
         _nextTokenId = 1;
+
+        emit ContractInitialized(initialOwner, MAX_SUPPLY);
     }
 
     /**
@@ -70,6 +88,12 @@ contract Gueio is ERC721Common
         _setTokenURI(tokenId, uri);
 
         emit TokenMinted(to, tokenId);
+
+        // Emit supply warning when approaching limits
+        uint256 remaining = remainingSupply();
+        if (remaining <= 50 && remaining > 0) {
+            emit SupplyWarning(remaining, totalMinted());
+        }
     }
 
     /**
@@ -87,6 +111,8 @@ contract Gueio is ERC721Common
             revert MaxSupplyExceeded();
         }
 
+        uint256 startTokenId = _nextTokenId;
+
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId;
             _nextTokenId++;
@@ -95,6 +121,15 @@ contract Gueio is ERC721Common
             _setTokenURI(tokenId, uris[i]);
 
             emit TokenMinted(to[i], tokenId);
+        }
+
+        uint256 endTokenId = _nextTokenId - 1;
+        emit BatchMinted(to.length, startTokenId, endTokenId);
+
+        // Emit supply warning when approaching limits
+        uint256 remaining = remainingSupply();
+        if (remaining <= 50 && remaining > 0) {
+            emit SupplyWarning(remaining, totalMinted());
         }
     }
 
