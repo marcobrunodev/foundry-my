@@ -63,6 +63,7 @@ contract Gueio is ERC721Common
         __ERC721URIStorage_init();
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
+        __Multicall_init();
 
         _nextTokenId = 1;
 

@@ -9,6 +9,7 @@ import {ERC721URIStorageUpgradeable} from
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC721State} from "../../interfaces/IERC721State.sol";
 import {IERC721Common} from "../../interfaces/IERC721Common.sol";
 
@@ -25,6 +26,7 @@ abstract contract ERC721Common is
     ERC721URIStorageUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
+    MulticallUpgradeable,
     IERC721Common
 {
     /// @dev Error thrown when querying state for a non-existent token

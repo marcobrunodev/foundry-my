@@ -354,4 +354,56 @@ contract GueioTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_Multicall() public {
+        vm.startPrank(owner);
+
+        // Prepare multiple mint calls
+        bytes[] memory calls = new bytes[](3);
+        calls[0] = abi.encodeWithSelector(Gueio.mint.selector, user1, "ipfs://token1");
+        calls[1] = abi.encodeWithSelector(Gueio.mint.selector, user2, "ipfs://token2");
+        calls[2] = abi.encodeWithSelector(Gueio.mint.selector, owner, "ipfs://token3");
+
+        // Execute all mints in a single transaction
+        gueio.multicall(calls);
+
+        // Verify all tokens were minted
+        assertEq(gueio.balanceOf(user1), 1);
+        assertEq(gueio.balanceOf(user2), 1);
+        assertEq(gueio.balanceOf(owner), 1);
+        assertEq(gueio.totalMinted(), 3);
+
+        // Verify token URIs
+        assertEq(gueio.tokenURI(1), "ipfs://token1");
+        assertEq(gueio.tokenURI(2), "ipfs://token2");
+        assertEq(gueio.tokenURI(3), "ipfs://token3");
+
+        vm.stopPrank();
+    }
+
+    function test_MulticallMixedOperations() public {
+        vm.startPrank(owner);
+
+        // First mint a token
+        gueio.mint(user1, "ipfs://initial");
+
+        vm.stopPrank();
+        vm.startPrank(user1);
+
+        // Now user1 can transfer and owner can mint in single multicall
+        vm.stopPrank();
+        vm.startPrank(owner);
+
+        bytes[] memory calls = new bytes[](2);
+        calls[0] = abi.encodeWithSelector(Gueio.mint.selector, user2, "ipfs://newtoken");
+        calls[1] = abi.encodeWithSelector(Gueio.mint.selector, owner, "ipfs://ownertoken");
+
+        gueio.multicall(calls);
+
+        assertEq(gueio.totalMinted(), 3);
+        assertEq(gueio.balanceOf(user2), 1);
+        assertEq(gueio.balanceOf(owner), 1);
+
+        vm.stopPrank();
+    }
 }
