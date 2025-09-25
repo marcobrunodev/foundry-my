@@ -38,7 +38,7 @@ contract UpgradeAppleTree is Script {
 
         // Perform upgrade
         appleTree.upgradeToAndCall(address(_newImplementation), "");
-        console.log("\n✅ Upgrade completed successfully!");
+        console.log("\nSUCCESS: Upgrade completed successfully!");
 
         // Verify state after upgrade
         console.log("\n=== STATE AFTER UPGRADE ===");

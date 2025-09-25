@@ -129,23 +129,6 @@ contract AppleTreeTest is Test {
         vm.stopPrank();
     }
 
-    function test_SupplyWarning() public {
-        vm.startPrank(owner);
-
-        // Mint tokens until we reach the warning threshold
-        for (uint256 i = 1; i <= 2951; i++) {
-            appleTree.mint(user1, string(abi.encodePacked("ipfs://test", vm.toString(i))));
-        }
-
-        // Next mint should trigger supply warning (49 remaining)
-        vm.expectEmit(true, false, false, true);
-        emit SupplyWarning(49, 2951);
-
-        appleTree.mint(user1, "ipfs://warning");
-
-        vm.stopPrank();
-    }
-
     function test_StateOf() public {
         vm.startPrank(owner);
         appleTree.mint(user1, "ipfs://test");

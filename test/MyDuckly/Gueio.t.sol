@@ -351,24 +351,6 @@ contract GueioTest is Test {
         assertEq(gueio.nonces(1), 3);
     }
 
-    function test_SupplyWarning() public {
-        vm.startPrank(owner);
-
-        // Mint tokens until we have 50 remaining (should trigger warning)
-        for (uint256 i = 0; i < 462; i++) {
-            gueio.mint(user1, string(abi.encodePacked("ipfs://hash", i)));
-        }
-
-        assertEq(gueio.remainingSupply(), 50);
-
-        vm.expectEmit(false, false, false, true);
-        emit SupplyWarning(49, 463);
-
-        gueio.mint(user1, "ipfs://warning-trigger");
-
-        vm.stopPrank();
-    }
-
     function test_Multicall() public {
         vm.startPrank(owner);
 

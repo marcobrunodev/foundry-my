@@ -38,7 +38,7 @@ contract UpgradeCanivalTV is Script {
 
         // Perform upgrade
         canivalTV.upgradeToAndCall(address(_newImplementation), "");
-        console.log("\n✅ Upgrade completed successfully!");
+        console.log("\nSUCCESS: Upgrade completed successfully!");
 
         // Verify state after upgrade
         console.log("\n=== STATE AFTER UPGRADE ===");
