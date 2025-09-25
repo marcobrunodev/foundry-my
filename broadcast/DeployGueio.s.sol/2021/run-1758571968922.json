@@ -187,16 +187,16 @@
   "libraries": [],
   "pending": [],
   "returns": {
-    "implementation": {
-      "internal_type": "address",
-      "value": "0xa1e86C003654E10137D981f0519f43D5cFcA3BF8"
-    },
     "proxy": {
       "internal_type": "address",
       "value": "0x2bD09b967B2fBd9EfACda19dB104A178742128cA"
+    },
+    "implementation": {
+      "internal_type": "address",
+      "value": "0xa1e86C003654E10137D981f0519f43D5cFcA3BF8"
     }
   },
-  "timestamp": 1758571987919,
+  "timestamp": 1758571968922,
   "chain": 2021,
   "commit": "51459da"
 }

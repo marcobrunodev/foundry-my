@@ -138,6 +138,7 @@ abstract contract ERC721Common is
     function supportsInterface(bytes4 interfaceId)
         public
         view
+        virtual
         override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable)
         returns (bool)
     {

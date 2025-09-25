@@ -4,7 +4,7 @@ out = "out"
 libs = ["lib"]
 
 [profile.default.lint]
-exclude_lints = ["asm-keccak256", "mixed-case-function"]
+exclude_lints = ["asm-keccak256", "mixed-case-function", "erc20-unchecked-transfer"]
 
 [profile.base]
 eth_rpc_url = "${BASE_RPC_URL}"

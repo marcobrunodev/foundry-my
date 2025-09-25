@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Gueio} from "../../src/MyDuckly/Gueio.sol";
 import {IERC721State} from "../../src/interfaces/IERC721State.sol";
 import {IERC721Common} from "../../src/interfaces/IERC721Common.sol";
@@ -11,6 +12,7 @@ contract GueioTest is Test {
     Gueio public gueio;
     Gueio public implementation;
     address public owner;
+    address public moderator;
     address public user1;
     address public user2;
 
@@ -22,6 +24,7 @@ contract GueioTest is Test {
 
     function setUp() public {
         owner = makeAddr("owner");
+        moderator = makeAddr("moderator");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
 
@@ -39,11 +42,17 @@ contract GueioTest is Test {
 
     function test_InitialState() public view {
         assertEq(gueio.name(), "Gueio");
-        assertEq(gueio.symbol(), "GUEIO");
+        assertEq(gueio.symbol(), "GO");
         assertEq(gueio.owner(), owner);
         assertEq(gueio.MAX_SUPPLY(), 512);
         assertEq(gueio.totalMinted(), 0);
         assertEq(gueio.remainingSupply(), 512);
+
+        // Check access control roles
+        assertTrue(gueio.hasRole(gueio.DEFAULT_ADMIN_ROLE(), owner));
+        assertTrue(gueio.hasRole(gueio.MODERATOR_ROLE(), owner));
+        assertFalse(gueio.hasRole(gueio.MODERATOR_ROLE(), user1));
+        assertFalse(gueio.hasRole(gueio.MODERATOR_ROLE(), user2));
     }
 
     function test_ContractInitialization() public {
@@ -110,10 +119,14 @@ contract GueioTest is Test {
         vm.stopPrank();
     }
 
-    function test_MintOnlyOwner() public {
+    function test_MintOnlyModerator() public {
         vm.startPrank(user1);
 
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, user1, gueio.MODERATOR_ROLE()
+            )
+        );
         gueio.mint(user1, "ipfs://test");
 
         vm.stopPrank();
@@ -198,6 +211,7 @@ contract GueioTest is Test {
         assertTrue(gueio.supportsInterface(0x5b5e139f)); // ERC721Metadata
         assertTrue(gueio.supportsInterface(type(IERC721State).interfaceId)); // IERC721State
         assertTrue(gueio.supportsInterface(type(IERC721Common).interfaceId)); // IERC721Common
+        assertTrue(gueio.supportsInterface(type(IAccessControl).interfaceId)); // IAccessControl
     }
 
     function test_Upgrade() public {
@@ -208,7 +222,7 @@ contract GueioTest is Test {
         gueio.upgradeToAndCall(address(newImplementation), "");
 
         assertEq(gueio.name(), "Gueio");
-        assertEq(gueio.symbol(), "GUEIO");
+        assertEq(gueio.symbol(), "GO");
         assertEq(gueio.owner(), owner);
 
         vm.stopPrank();
@@ -405,5 +419,137 @@ contract GueioTest is Test {
         assertEq(gueio.balanceOf(owner), 1);
 
         vm.stopPrank();
+    }
+
+    // ============ Access Control Tests ============
+
+    function test_GrantModeratorRole() public {
+        vm.startPrank(owner);
+
+        assertFalse(gueio.hasRole(gueio.MODERATOR_ROLE(), moderator));
+
+        gueio.grantRole(gueio.MODERATOR_ROLE(), moderator);
+
+        assertTrue(gueio.hasRole(gueio.MODERATOR_ROLE(), moderator));
+
+        vm.stopPrank();
+    }
+
+    function test_RevokeModeratorRole() public {
+        vm.startPrank(owner);
+
+        // First grant the role
+        gueio.grantRole(gueio.MODERATOR_ROLE(), moderator);
+        assertTrue(gueio.hasRole(gueio.MODERATOR_ROLE(), moderator));
+
+        // Then revoke it
+        gueio.revokeRole(gueio.MODERATOR_ROLE(), moderator);
+        assertFalse(gueio.hasRole(gueio.MODERATOR_ROLE(), moderator));
+
+        vm.stopPrank();
+    }
+
+    function test_OnlyAdminCanGrantRole() public {
+        bytes32 moderatorRole = gueio.MODERATOR_ROLE();
+
+        vm.startPrank(user1);
+
+        vm.expectRevert();
+        gueio.grantRole(moderatorRole, moderator);
+
+        vm.stopPrank();
+    }
+
+    function test_OnlyAdminCanRevokeRole() public {
+        bytes32 moderatorRole = gueio.MODERATOR_ROLE();
+
+        vm.startPrank(owner);
+        gueio.grantRole(moderatorRole, moderator);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        vm.expectRevert();
+        gueio.revokeRole(moderatorRole, moderator);
+
+        vm.stopPrank();
+    }
+
+    function test_ModeratorCanMint() public {
+        vm.startPrank(owner);
+        gueio.grantRole(gueio.MODERATOR_ROLE(), moderator);
+        vm.stopPrank();
+
+        vm.startPrank(moderator);
+
+        string memory uri = "ipfs://QmModeratorMint";
+
+        vm.expectEmit(true, true, false, true);
+        emit TokenMinted(user1, 1);
+
+        gueio.mint(user1, uri);
+
+        assertEq(gueio.balanceOf(user1), 1);
+        assertEq(gueio.ownerOf(1), user1);
+        assertEq(gueio.tokenURI(1), uri);
+
+        vm.stopPrank();
+    }
+
+    function test_ModeratorCanBatchMint() public {
+        vm.startPrank(owner);
+        gueio.grantRole(gueio.MODERATOR_ROLE(), moderator);
+        vm.stopPrank();
+
+        vm.startPrank(moderator);
+
+        address[] memory recipients = new address[](2);
+        recipients[0] = user1;
+        recipients[1] = user2;
+
+        string[] memory uris = new string[](2);
+        uris[0] = "ipfs://QmModMint1";
+        uris[1] = "ipfs://QmModMint2";
+
+        vm.expectEmit(true, true, false, true);
+        emit BatchMinted(2, 1, 2);
+
+        gueio.batchMint(recipients, uris);
+
+        assertEq(gueio.balanceOf(user1), 1);
+        assertEq(gueio.balanceOf(user2), 1);
+        assertEq(gueio.totalMinted(), 2);
+
+        vm.stopPrank();
+    }
+
+    function test_RevokedModeratorCannotMint() public {
+        vm.startPrank(owner);
+        gueio.grantRole(gueio.MODERATOR_ROLE(), moderator);
+        vm.stopPrank();
+
+        // Moderator can mint initially
+        vm.startPrank(moderator);
+        gueio.mint(user1, "ipfs://test1");
+        vm.stopPrank();
+
+        // Owner revokes role
+        vm.startPrank(owner);
+        gueio.revokeRole(gueio.MODERATOR_ROLE(), moderator);
+        vm.stopPrank();
+
+        // Moderator can no longer mint
+        vm.startPrank(moderator);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, moderator, gueio.MODERATOR_ROLE()
+            )
+        );
+        gueio.mint(user2, "ipfs://test2");
+        vm.stopPrank();
+    }
+
+    function test_SupportsAccessControlInterface() public view {
+        assertTrue(gueio.supportsInterface(type(IAccessControl).interfaceId));
     }
 }

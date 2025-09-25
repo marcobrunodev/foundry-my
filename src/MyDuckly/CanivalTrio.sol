@@ -5,12 +5,12 @@ import {ERC721Common} from "../common/ronin/ERC721Common.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 /**
- * @title Gueio
+ * @title CanivalTrio
  * @dev Upgradeable ERC721 NFT contract with enumerable and URI storage extensions
  * @notice This contract implements a limited supply NFT collection with batch minting capabilities
  * @author Marco Bruno
  */
-contract Gueio is ERC721Common, AccessControlUpgradeable {
+contract CanivalTrio is ERC721Common, AccessControlUpgradeable {
     /// @dev Error thrown when trying to mint beyond the maximum supply
     error MaxSupplyReached();
 
@@ -21,7 +21,7 @@ contract Gueio is ERC721Common, AccessControlUpgradeable {
     error MaxSupplyExceeded();
 
     /// @notice Maximum number of tokens that can be minted
-    uint256 public constant MAX_SUPPLY = 512;
+    uint256 public constant MAX_SUPPLY = 2048;
 
     /// @notice Role identifier for moderators
     bytes32 public constant MODERATOR_ROLE = keccak256("MODERATOR_ROLE");
@@ -61,7 +61,7 @@ contract Gueio is ERC721Common, AccessControlUpgradeable {
      * @param initialOwner The address that will own the contract
      */
     function initialize(address initialOwner) public initializer {
-        __ERC721_init("Gueio", "GO");
+        __ERC721_init("MyDuckly Canival Trio", "MDCT");
         __ERC721Enumerable_init();
         __ERC721URIStorage_init();
         __Ownable_init(initialOwner);

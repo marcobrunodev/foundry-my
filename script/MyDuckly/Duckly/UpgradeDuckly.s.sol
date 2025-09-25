@@ -3,52 +3,52 @@ pragma solidity ^0.8.30;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {Gueio} from "../../../src/MyDuckly/Gueio.sol";
+import {Duckly} from "../../../src/MyDuckly/Duckly.sol";
 
-contract UpgradeGueio is Script {
+contract UpgradeDuckly is Script {
     function run() external returns (address newImplementation) {
         vm.startBroadcast();
 
         address deployer = msg.sender;
-        console.log("Upgrading Gueio with deployer:", deployer);
+        console.log("Upgrading Duckly with deployer:", deployer);
 
         // Get proxy address from environment
-        address proxyAddress = vm.envAddress("GUEIO_PROXY");
-        console.log("Gueio proxy address:", proxyAddress);
+        address proxyAddress = vm.envAddress("DUCKLY_PROXY");
+        console.log("Duckly proxy address:", proxyAddress);
 
         // Deploy new implementation
-        Gueio _newImplementation = new Gueio();
-        console.log("New Gueio implementation deployed at:", address(_newImplementation));
+        Duckly _newImplementation = new Duckly();
+        console.log("New Duckly implementation deployed at:", address(_newImplementation));
 
         // Get the proxy instance
-        Gueio gueio = Gueio(proxyAddress);
+        Duckly duckly = Duckly(proxyAddress);
 
         // Verify current owner before upgrade
-        address currentOwner = gueio.owner();
+        address currentOwner = duckly.owner();
         console.log("Current contract owner:", currentOwner);
 
         // Get current state before upgrade
         console.log("\n=== STATE BEFORE UPGRADE ===");
         console.log("Current implementation:", getImplementation(proxyAddress));
-        console.log("Contract name:", gueio.name());
-        console.log("Contract symbol:", gueio.symbol());
-        console.log("Max supply:", gueio.MAX_SUPPLY());
-        console.log("Total minted:", gueio.totalMinted());
-        console.log("Remaining supply:", gueio.remainingSupply());
+        console.log("Contract name:", duckly.name());
+        console.log("Contract symbol:", duckly.symbol());
+        console.log("Max supply:", duckly.MAX_SUPPLY());
+        console.log("Total minted:", duckly.totalMinted());
+        console.log("Remaining supply:", duckly.remainingSupply());
 
         // Perform upgrade
-        gueio.upgradeToAndCall(address(_newImplementation), "");
-        console.log("\n  Upgrade completed successfully!");
+        duckly.upgradeToAndCall(address(_newImplementation), "");
+        console.log("\n✅ Upgrade completed successfully!");
 
         // Verify state after upgrade
         console.log("\n=== STATE AFTER UPGRADE ===");
         console.log("New implementation:", getImplementation(proxyAddress));
-        console.log("Contract name:", gueio.name());
-        console.log("Contract symbol:", gueio.symbol());
-        console.log("Max supply:", gueio.MAX_SUPPLY());
-        console.log("Total minted:", gueio.totalMinted());
-        console.log("Remaining supply:", gueio.remainingSupply());
-        console.log("Owner:", gueio.owner());
+        console.log("Contract name:", duckly.name());
+        console.log("Contract symbol:", duckly.symbol());
+        console.log("Max supply:", duckly.MAX_SUPPLY());
+        console.log("Total minted:", duckly.totalMinted());
+        console.log("Remaining supply:", duckly.remainingSupply());
+        console.log("Owner:", duckly.owner());
 
         vm.stopBroadcast();
 
